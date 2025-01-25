@@ -1,0 +1,14 @@
+{
+    "window.zoomLevel": 2,
+    "editor.mouseWheelZoom": true,
+    "workbench.iconTheme": "material-icon-theme",
+    "[javascript]": {
+        "editor.defaultFormatter": "vscode.typescript-language-features"
+    },
+    "window.titleBarStyle": "custom",
+    "editor.fontSize": 16,
+    "[typescript]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "terminal.integrated.env.linux": {}
+}

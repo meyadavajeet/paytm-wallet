@@ -1,8 +1,11 @@
+const { JWT_SECRET } = require("../config/config");
 const { User } = require("../models/user.model");
 const { signupBody } = require("../validators/user.validator");
+const jwt = require("jsonwebtoken");
 
 const signup = async (req, res) => {
-	console.log("signup callback")
+	// console.log("signup callback")
+	// console.log(req.body);
 	const { success } = signupBody.safeParse(req.body);
 	if (!success) {
 		return res.status(401).json({
@@ -28,11 +31,11 @@ const signup = async (req, res) => {
 		userId
 	}, JWT_SECRET);
 
-	res.json({
+	return res.status(201).json({
 		message: "User created successfully",
 		token: token
 	})
-	return;
+
 }
 
 module.exports = {

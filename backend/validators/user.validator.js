@@ -5,12 +5,12 @@ const signupBody = zod.object({
     username: zod.string().email(),
     firstName: zod.string(),
     lastName: zod.string(),
-    password: zod.string()
+    password: zod.string().min(2)
 });
 
 const signInBody = zod.object({
     username: zod.string().email(),
-	password: zod.string()
+    password: zod.string()
 })
 
 

@@ -11,4 +11,4 @@ router.post("/signin", userController.signIn)
 // authorized routes
 router.put("/update", authMiddleware, userController.updateUserInfo)
 router.get("/get", authMiddleware, userController.getUserInfo)
-router.get("/search", authMiddleware, userController.filterUser)
+router.get("/search", authMiddleware, userController.filterUser

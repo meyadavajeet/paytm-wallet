@@ -1,4 +1,5 @@
 const { JWT_SECRET } = require("../config/config");
+const { Account } = require("../models/account.model");
 const { User } = require("../models/user.model");
 const { signupBody, signInBody, updateUserInfoBody } = require("../validators/user.validator");
 const jwt = require("jsonwebtoken");
@@ -31,6 +32,13 @@ const signup = async (req, res) => {
 	});
 
 	const userId = user._id;
+
+	// create account for the user and give random balance between 0 and 1000
+	const account = await Account.create({
+		userId: userId,
+		balance: Math.floor(Math.random() * 1000),
+		accountNumber: Math.floor(Math.random() * 1000000000),
+	});
 
 	const token = jwt.sign({
 		userId

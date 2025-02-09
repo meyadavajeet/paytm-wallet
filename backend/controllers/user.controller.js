@@ -1,6 +1,6 @@
 const { JWT_SECRET } = require("../config/config");
 const { User } = require("../models/user.model");
-const { signupBody, signInBody } = require("../validators/user.validator");
+const { signupBody, signInBody, updateUserInfoBody } = require("../validators/user.validator");
 const jwt = require("jsonwebtoken");
 
 const signup = async (req, res) => {
@@ -87,7 +87,126 @@ const signIn = async (req, res) => {
 	}
 }
 
+// update userInformation except email/username
+const updateUserInfo = async (req, res) => {
+	try {
+		const { success, data } = updateUserInfoBody.safeParse(req.body);
+		if (!success) {
+			return res.status(411).json({
+				message: "Incorrect inputs"
+			})
+		}
+		// find the user by id
+		const user = await User.findById(req.userId);
+		const userId = req.userId;
+		const _hashedPassword = await user.createHash(data.password);
+
+		await User.updateOne({
+			_id: userId
+		}, {
+			firstName: data.firstName,
+			lastName: data.lastName,
+			password: _hashedPassword
+		});
+		return res.status(200).json({
+			message: "User updated successfully",
+		})
+	} catch (error) {
+		console.log(error)
+		return res.status(500).json({
+			message: "Internal server error"
+		})
+
+	}
+}
+
+const getUserInfo = async (req, res) => {
+	try {
+		const user = await User.findById(req.userId);
+		return res.status(200).json({
+			user
+		})
+	} catch (error) {
+		console.log(error)
+		return res.status(500).json({
+			message: "Internal server error"
+		})
+	}
+}
+
+// filter user by id, firstName, lastName
+// const filterUser = async (req, res) => {
+// 	try {
+// 		const user = await User.find(
+// 			{
+// 				$or:
+// 					[
+// 						{ 'id': req.userId },
+// 						{ 'firstName': req.param }, { 'lastName': req.param }]
+// 			},
+// 			{ 'username': 1, 'firstName': 1, 'lastName': 1 },
+// 			(err, docs) => {
+// 				if (!err) {
+// 					return res.status(200).json({
+// 						docs
+// 					})
+
+// 				}
+// 			});
+// 	} catch (error) {
+// 		console.log(error)
+// 		return res.status(500).json({
+// 			message: "Internal server error"
+// 		})
+// 	}
+// }
+
+const filterUser = async (req, res) => {
+	try {
+		const filter = req.query.filter || "";
+		const users = await User.find({
+			$or: [
+
+				{
+					firstName: {
+						$regex: filter,
+						$options: "i"
+					}
+				},
+				{
+					lastName: {
+						$regex: filter,
+						$options: "i"
+					}
+				},
+				{
+					username: {
+						$regex: filter,
+						$options: "i"
+					}
+				}
+			]
+		});
+		return res.status(200).json({
+			user: users.map(user => ({
+				username: user.username,
+				firstName: user.firstName,
+				lastName: user.lastName,
+				_id: user._id
+			}))
+		});
+	} catch (error) {
+		console.log(error)
+		return res.status(500).json({
+			message: "Internal server error"
+		})
+	}
+}
+
 module.exports = {
 	signup,
-	signIn
+	signIn,
+	updateUserInfo,
+	getUserInfo,
+	filterUser,
 }

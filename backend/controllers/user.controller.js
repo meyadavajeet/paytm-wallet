@@ -5,50 +5,57 @@ const { signupBody, signInBody, updateUserInfoBody } = require("../validators/us
 const jwt = require("jsonwebtoken");
 
 const signup = async (req, res) => {
-	// console.log("signup callback")
-	// console.log(req.body);
-	const { success } = signupBody.safeParse(req.body);
-	if (!success) {
-		return res.status(401).json({
-			message: "Email is already taken /Incorrect inputs"
+	try {
+		// console.log("signup callback")
+		// console.log(req.body);
+		const { success } = signupBody.safeParse(req.body);
+		if (!success) {
+			return res.status(401).json({
+				message: "Email is already taken /Incorrect inputs"
+			})
+		}
+		const existingUser = await User.findOne({ username: req.body.username })
+		if (existingUser) {
+			return res.status(411).json({
+				message: "Email Already exist"
+			})
+		}
+
+		const _user = new User();
+
+		const hashedPassword = await _user.createHash(req.body.password);
+
+		const user = await User.create({
+			username: req.body.username,
+			password: hashedPassword,
+			firstName: req.body.firstName,
+			lastName: req.body.lastName,
+		});
+
+		const userId = user._id;
+
+		// create account for the user and give random balance between 0 and 1000
+		const account = await Account.create({
+			userId: userId,
+			balance: Math.floor(Math.random() * 10000),
+			accountNumber: Math.floor(Date.now() / 1000) // Math.floor(Math.random() * 1000000000),
+		});
+
+		const token = jwt.sign({
+			userId
+		}, JWT_SECRET);
+
+		return res.status(201).json({
+			message: "User created successfully",
+			token: token,
+			account
+		})
+	} catch (error) {
+		console.log(error)
+		return res.status(500).json({
+			message: "Internal server error"
 		})
 	}
-	const existingUser = await User.findOne({ username: req.body.username })
-	if (existingUser) {
-		return res.status(411).json({
-			message: "Email Already exist"
-		})
-	}
-
-	const _user = new User();
-
-	const hashedPassword = await _user.createHash(req.body.password);
-
-	const user = await User.create({
-		username: req.body.username,
-		password: hashedPassword,
-		firstName: req.body.firstName,
-		lastName: req.body.lastName,
-	});
-
-	const userId = user._id;
-
-	// create account for the user and give random balance between 0 and 1000
-	const account = await Account.create({
-		userId: userId,
-		balance: Math.floor(Math.random() * 1000),
-		accountNumber: Math.floor(Math.random() * 1000000000),
-	});
-
-	const token = jwt.sign({
-		userId
-	}, JWT_SECRET);
-
-	return res.status(201).json({
-		message: "User created successfully",
-		token: token
-	})
-
 }
 
 
